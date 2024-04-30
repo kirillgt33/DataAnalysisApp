@@ -1,5 +1,6 @@
 import customtkinter as CTk
 from pandastable import Table, TableModel
+from extends.check_on_float import is_numeric_with_dots
 
 ### Вкладка <Фильтрация и сортировка> ###
 class TabFiltrationSort(CTk.CTkFrame):
@@ -107,14 +108,6 @@ class TabFiltrationSort(CTk.CTkFrame):
         
         dataframe = self.master.app.left_frame.dataframe
         
-        # Проверка на float число
-        def is_numeric_with_dots(s):
-            # Удаляем точки, проверяем, состоит ли строка из чисел,
-            # затем восстанавливаем точки, если они были в оригинальной строке
-            s_without_dots = s.replace('.', '')
-            is_numeric = s_without_dots.isdigit()
-            return is_numeric and (s.count('.') <= 1)
-        
         # Если строка только из чисел то конвертация в int
         if filter_feature_value.isdigit():
             filter_feature_value = int(filter_feature_value)
@@ -192,7 +185,7 @@ class TabFiltrationSort(CTk.CTkFrame):
         
         # Конвертация в str
         str_uniques = [str(value) for value in uniques]
-
+        
         # Передача списка в меню и его активация
         self.menu_feature_filter_value.configure(state='normal', values=str_uniques)
         
@@ -202,6 +195,10 @@ class TabFiltrationSort(CTk.CTkFrame):
         # Активация combobox выбора условия для фильтрации и установка стандартного условия
         self.combobox_filter_action.configure(state='readonly')
         self.combobox_filter_action.set('Равняется')
+        
+        # Если у  признака тип данных object то условия для фильтрации не нужны
+        if self.master.app.left_frame.dataframe[choice].dtype == 'object':
+            self.combobox_filter_action.configure(state='disabled')
         
     # Вывод поля для ручного ввода вместо меню и наоборот
     def switch_manual_input_filter_call(self):
