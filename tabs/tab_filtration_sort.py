@@ -61,7 +61,7 @@ class TabFiltrationSort(CTk.CTkFrame):
         self.combobox_filter_action.grid(row=1, pady=5)
         
         # Переключение между полем для ввода и меню значения признака
-        self.switch_manual_input_filter = CTk.CTkSwitch(master=self.frame_filters, text='Ручной ввод', state='disabled',command=self.switch_manual_input_filter_call,
+        self.switch_manual_input_filter = CTk.CTkSwitch(master=self.frame_filters, text='Ручной ввод', state='disabled', command=self.switch_manual_input_filter_call,
                                                         switch_width=38, switch_height=20, border_width=0)
         self.switch_manual_input_filter.grid(sticky='w', row=4, pady=5, padx=5)
         

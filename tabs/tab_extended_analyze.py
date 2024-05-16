@@ -1,5 +1,7 @@
 import customtkinter as CTk
+import pandas as pd
 import numpy as np
+from pandastable import Table
 from extends.blowouts_iqr_z import outliers_iqr_mod, outliers_z_score_mod
 
 # Вкладки настроек нахождения выбросов
@@ -68,6 +70,46 @@ class BlowoutSettingsTabs(CTk.CTkTabview):
         self.combobox_blowout_iqr_log_scale.pack(pady=5)
 
 
+   
+# Отображение выбросов
+class ViewBlowouts(CTk.CTkToplevel):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        
+        self.master = master
+        
+        self.minsize(600, 600)
+        
+        self.frame_options = CTk.CTkFrame(self)
+        self.frame_options.grid(row=1, column=3, sticky='ne', padx=5)
+        
+        self.blowouts_switch_btn = CTk.CTkButton(self.frame_options, text='Сменить данные', width=180, corner_radius=12,
+                                                 command=self.blowouts_switch)
+        self.blowouts_switch_btn.grid(pady=5, padx=5)
+        
+        self.view_data_table = CTk.CTkLabel(self.frame_options)
+        self.view_data_table.grid(pady=5)
+        
+        self.blowout_z_table = Table(self, dataframe=self.master.outliers_z,
+                              editable=False, enable_menus=False, showstatusbar=True, showtoolbar=False)
+        
+        self.blowout_iqr_table = Table(self, dataframe=self.master.outliers_iqr,
+                              editable=False, enable_menus=False, showstatusbar=True, showtoolbar=False)
+        
+    def blowouts_switch(self):
+        if self.view_data_table.cget('text') == 'Выбросы метода Тьюки':
+            self.blowout_iqr_table.grid_forget()
+            self.blowout_z_table.show()
+            self.view_data_table.configure(text='Выбросы метода z-отклонений')
+        
+        else:
+            self.blowout_z_table.grid_forget()
+            self.blowout_iqr_table.show()
+            self.view_data_table.configure(text='Выбросы метода Тьюки')     
+
+
+
+
 ### Вкладка <Расширенный анализ> ###
 class TabExtendedAnalyze(CTk.CTkFrame):
     def __init__(self, master, **kwargs):
@@ -116,8 +158,14 @@ class TabExtendedAnalyze(CTk.CTkFrame):
         self.settings_blowouts_tabs.pack()
         
         # Кнопка анализа
-        self.analyze_btn = CTk.CTkButton(master=self.frame_settings_right, text='Анализировать', state='disabled', command=self.analyze_extend)
+        self.analyze_btn = CTk.CTkButton(master=self.frame_settings_right, text='Анализировать', state='disabled',
+                                         width=160, command=self.analyze_extend)
         self.analyze_btn.pack(pady=5)
+        
+        # Кнопка для открытия окна с таблицами выбросов
+        self.view_blowouts_btn = CTk.CTkButton(master=self.frame_settings_right, text='Просмотреть выбросы', state='disabled', corner_radius=12,
+                                               width=160, command=self.view_blowouts)
+        self.view_blowouts_btn.pack(pady=10)
         
         # TextBox для вывода статистического анализа
         self.textbox_analyze = CTk.CTkTextbox(master=self.master.tab('Расширенный анализ'), state='disabled', font=("Helvetica", 18))
@@ -163,22 +211,24 @@ class TabExtendedAnalyze(CTk.CTkFrame):
             
             # Получение выбросов
             if self.checkbox_blowout_analyze_z.get() == 'on':
-                outliers_z, cleaned_z = outliers_z_score_mod(data, feature, left=z_left, right=z_right, log_scale=z_log_scale)
+                self.outliers_z, cleaned_z = outliers_z_score_mod(data, feature, left=z_left, right=z_right, log_scale=z_log_scale)
                 
-                result_z = f'Число выбросов по методу Z-отклонения: {outliers_z.shape[0]}\n' \
+                result_z = f'Число выбросов по методу Z-отклонения: {self.outliers_z.shape[0]}\n' \
                            f'Число записей без выбросов: {cleaned_z.shape[0]}\n' \
             
             else:
                 result_z = ''
+                self.outliers_z = pd.DataFrame()
             
             if self.checkbox_blowout_analyze_iqr.get() == 'on':
-                outliers_iqr, cleaned_iqr = outliers_iqr_mod(data, feature, left=iqr_left, right=iqr_right, log_scale=iqr_log_scale)
+                self.outliers_iqr, cleaned_iqr = outliers_iqr_mod(data, feature, left=iqr_left, right=iqr_right, log_scale=iqr_log_scale)
                 
-                result_iqr = f'Число выбросов по методу Тьюки: {outliers_iqr.shape[0]}\n' \
+                result_iqr = f'Число выбросов по методу Тьюки: {self.outliers_iqr.shape[0]}\n' \
                              f'Число записей без выбросов: {cleaned_iqr.shape[0]}\n' \
             
             else:
                 result_iqr = ''
+                self.outliers_iqr = pd.DataFrame()
             
             # Нахождение основных статистических метрик
             result_analyze_str = f"Среднее: {data[feature].mean()}\nМедиана: {data[feature].median()}\nСтандартное отклонение: {data[feature].std()}\n" \
@@ -187,6 +237,9 @@ class TabExtendedAnalyze(CTk.CTkFrame):
                                  f"Межквартильный размах: {quartiles[2] - quartiles[0]}\n" \
                                  f"Мода: {data[feature].mode()[0]}\nАсимметрия: {data[feature].skew()}\nЭксцесс: {data[feature].kurtosis()}\n" \
                                  '\n'            
+            
+            # Активация кнопки просмотра выбросов
+            self.view_blowouts_btn.configure(state='normal')
             
         # Если тип данных признака не числовой    
         except Exception as e:
@@ -200,3 +253,22 @@ class TabExtendedAnalyze(CTk.CTkFrame):
         self.textbox_analyze.delete(1.0, 'end')
         self.textbox_analyze.insert('end', result_analyze_str + result_z + result_iqr)
         self.textbox_analyze.configure(state='disabled')
+    
+    def view_blowouts(self):
+        self.blowouts_window = ViewBlowouts(master=self)
+        
+        if self.outliers_z.empty:
+            self.blowouts_window.blowout_iqr_table.show()
+            self.blowouts_window.view_data_table.configure(text='Выбросы метода Тьюки')
+        
+        elif not self.outliers_z.empty:
+            self.blowouts_window.blowout_z_table.show()
+            self.blowouts_window.view_data_table.configure(text='Выбросы метода z-отклонений')
+        
+        # Захват фокуса на окно
+        self.blowouts_window.grab_set()
+        
+    # Игнор ошибки чтобы вывод таблицы работал в TabView
+    def bind_all(self, sequence=None, func=None, add=None):
+        # raise AttributeError("'bind_all' is not allowed, could result in undefined behavior")
+        pass
