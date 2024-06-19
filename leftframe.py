@@ -108,6 +108,9 @@ class LeftFrame(CTk.CTkFrame):
                 # Активация меню фильтрации
                 self.app.tab_view.tab_filtration_sort.menu_feature_filter.configure(state='normal')
                 
+                # Активация комбо меню расширенной фильтрации
+                self.app.tab_view.tab_filtration_sort.extended_filtration_btn.configure(state='normal')
+                
                 # Активация меню выбора признака для анализа
                 self.app.tab_view.tab_extended_analyze.menu_feature_analyze.configure(state='normal')
                 
