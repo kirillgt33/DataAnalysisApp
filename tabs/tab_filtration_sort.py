@@ -36,7 +36,7 @@ class TabFiltrationSort(CTk.CTkFrame):
         
         # Меню выбора значения признака для фильтрации
         self.menu_feature_filter_value = CTk.CTkOptionMenu(master=self.frame_filters, width=180, state='disabled', dynamic_resizing=False,
-                                                           command=lambda: self.filter_apply_btn.configure(state='normal'), corner_radius=12)
+                                                           command=lambda x: self.filter_apply_btn.configure(state='normal'), corner_radius=12)
         self.menu_feature_filter_value.set('Значение')
         self.menu_feature_filter_value.grid(row=2, pady=5)
         
