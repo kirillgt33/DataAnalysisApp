@@ -78,6 +78,7 @@ class ViewBlowouts(CTk.CTkToplevel):
         
         self.master = master
         
+        self.title('Выбросы')
         self.minsize(600, 600)
         
         self.frame_options = CTk.CTkFrame(self)
@@ -253,6 +254,9 @@ class TabExtendedAnalyze(CTk.CTkFrame):
         self.textbox_analyze.delete(1.0, 'end')
         self.textbox_analyze.insert('end', result_analyze_str + result_z + result_iqr)
         self.textbox_analyze.configure(state='disabled')
+        
+        # Активация кнопки сохранения данных анализа
+        self.master.tab_saves.btn_save_extended_data.configure(state='normal')
     
     def view_blowouts(self):
         self.blowouts_window = ViewBlowouts(master=self)

@@ -38,6 +38,11 @@ class TabSaves(CTk.CTkFrame):
         self.save_filter_df_types = ['Отфильтрованные']
         self.combobox_save_filter_df = CTk.CTkComboBox(master=self.frame_save_filter_df, values=self.save_filter_df_types, state='disabled', width=180, corner_radius=12)
         self.combobox_save_filter_df.pack(side='right', pady=5, padx=5)
+        
+        # Кнопка сохранения данных анализа
+        self.btn_save_extended_data = CTk.CTkButton(master=self.master.tab('Сохранение'), text='Сохранить данные анализа', state='disabled', command=self.save_analyze_data)
+        self.btn_save_extended_data.pack(anchor='nw', pady=5)
+
 
     # Сохранение графика
     def save_graphic(self):
@@ -93,6 +98,27 @@ class TabSaves(CTk.CTkFrame):
                 elif file_path.endswith('.html'):
                     # Сохраняем данные в Html-файл
                     save_data.to_html(file_path, index=False)
+                    
+                # Уведомление о успешном сохранении
+                CTkNotification(self.master.app, message='Сохранение прошло успешно')
+                    
+            except Exception as e:
+                # Уведомление об ошибке при сохранении
+                CTkNotification(self.master.app, message='Произошла ошибка', state='error')
+                
+    def save_analyze_data(self):
+        file_path = CTk.filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("TXT files", "*.txt")])
+        
+        data = self.master.tab_extended_analyze.textbox_analyze.get(1.0, 'end')
+        
+        # Если пользователь выбрал файл
+        if file_path:
+            try:
+                if file_path.endswith('.txt'):
+                    # Открываем файл для записи (режим 'w')
+                    with open(file_path, 'w') as file:
+                        # Записываем текст из переменной в файл
+                        file.write(data)
                     
                 # Уведомление о успешном сохранении
                 CTkNotification(self.master.app, message='Сохранение прошло успешно')
